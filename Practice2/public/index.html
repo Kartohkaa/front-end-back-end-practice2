@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест API товаров</title>
+</head>
+<body>
+    <h1>API товаров</h1>
+    
+    <div>
+        <h3>Все товары (GET)</h3>
+        <button onclick="getProducts()">Запросить</button>
+        <pre id="products"></pre>
+    </div>
+    
+    <div>
+        <h3>Создать товар (POST)</h3>
+        <input id="name" placeholder="Название">
+        <input id="price" placeholder="Цена" type="number">
+        <button onclick="createProduct()">Создать</button>
+        <pre id="create"></pre>
+    </div>
+    
+    <script>
+        async function getProducts() {
+            const res = await fetch('/products');
+            const data = await res.json();
+            document.getElementById('products').textContent = JSON.stringify(data, null, 2);
+        }
+        
+        async function createProduct() {
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+            
+            const res = await fetch('/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, price })
+            });
+            const data = await res.json();
+            document.getElementById('create').textContent = JSON.stringify(data, null, 2);
+            getProducts();
+        }
+        
+        getProducts();
+    </script>
+</body>
+</html>
