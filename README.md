@@ -1,3 +1,3 @@
 # front-end-back-end-practice2
 
-[САЙТИК](Practice1/index.html)
+[САЙТИК](https://kartohkaa.github.io/front-end-back-end-practice2/Practice1/)
