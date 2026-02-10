@@ -1,9 +1,9 @@
-// Переменные
+// ПЕРЕМЕННЫЕ SASS
 $primary-color: #3498db;
 $secondary-color: #2ecc71;
 $card-bg: #f9f9f9;
 
-// Миксин для тени
+// МИКСИН с параметром
 @mixin card-shadow($level: 1) {
   @if $level == 1 {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -12,15 +12,14 @@ $card-bg: #f9f9f9;
   }
 }
 
-// Стили карточки
 .product-card {
   background: $card-bg;
   border-radius: 10px;
   padding: 20px;
   max-width: 300px;
-  @include card-shadow(2);
+  @include card-shadow(2); //  ВЫЗОВ МИКСИНА
   
-  // Вложенность
+  //  ВЛОЖЕННОСТЬ селекторов
   &__image {
     width: 100%;
     height: 200px;
@@ -33,7 +32,7 @@ $card-bg: #f9f9f9;
   }
   
   &__title {
-    color: $primary-color;
+    color: $primary-color; //  ПЕРЕМЕННАЯ 1
     font-size: 1.5rem;
     margin: 15px 0 10px;
   }
@@ -44,7 +43,7 @@ $card-bg: #f9f9f9;
   }
   
   &__price {
-    color: $secondary-color;
+    color: $secondary-color; //  ПЕРЕМЕННАЯ 2
     font-weight: bold;
     font-size: 1.2rem;
     margin-top: 15px;
