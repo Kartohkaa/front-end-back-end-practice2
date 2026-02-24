@@ -1,0 +1,110 @@
+[
+  {
+    "id": "abc123",
+    "name": "Ноутбук ASUS ROG Strix G15",
+    "category": "qweqwe",
+    "description": "Игровой ноутбук с AMD Ryzen 7, 16GB RAM, RTX 3060, 512GB SSD",
+    "price": 89990,
+    "stock": 15,
+    "rating": 4.8
+  },
+  {
+    "id": "def456",
+    "name": "Смартфон iPhone 15 Pro",
+    "category": "Электроника",
+    "description": "A17 Pro, 256GB, Titanium, 48MP камера",
+    "price": 119990,
+    "stock": 8,
+    "rating": 4.9
+  },
+  {
+    "id": "ghi789",
+    "name": "Наушники Sony WH-1000XM5",
+    "category": "Аксессуары",
+    "description": "Беспроводные наушники с шумоподавлением, 30 часов работы",
+    "price": 24990,
+    "stock": 23,
+    "rating": 4.9
+  },
+  {
+    "id": "jkl012",
+    "name": "Кроссовки Nike Air Max 270",
+    "category": "Обувь",
+    "description": "Мужские спортивные кроссовки, дышащая сетка",
+    "price": 8990,
+    "stock": 42,
+    "rating": 4.5
+  },
+  {
+    "id": "mno345",
+    "name": "Кофемашина DeLonghi Magnifica",
+    "category": "Для дома",
+    "description": "Автоматическая кофемашина с капучинатором",
+    "price": 45990,
+    "stock": 7,
+    "rating": 4.7
+  },
+  {
+    "id": "pqr678",
+    "name": "Умные часы Samsung Galaxy Watch 6",
+    "category": "Электроника",
+    "description": "Слежение за здоровьем, GPS, NFC",
+    "price": 27990,
+    "stock": 19,
+    "rating": 4.6
+  },
+  {
+    "id": "stu901",
+    "name": "Планшет iPad Air",
+    "category": "Электроника",
+    "description": "M1 чип, 64GB, 10.9 дюйма",
+    "price": 54990,
+    "stock": 12,
+    "rating": 4.8
+  },
+  {
+    "id": "vwx234",
+    "name": "Клавиатура Logitech MX Keys",
+    "category": "Аксессуары",
+    "description": "Беспроводная клавиатура с подсветкой",
+    "price": 8990,
+    "stock": 31,
+    "rating": 4.7
+  },
+  {
+    "id": "yza567",
+    "name": "Монитор LG 27UL850",
+    "category": "Электроника",
+    "description": "27 дюймов, 4K, USB-C",
+    "price": 32990,
+    "stock": 9,
+    "rating": 4.5
+  },
+  {
+    "id": "bcd890",
+    "name": "Рюкзак Xiaomi",
+    "category": "Аксессуары",
+    "description": "Водонепроницаемый, 20L, с USB портом",
+    "price": 2490,
+    "stock": 67,
+    "rating": 4.4
+  },
+  {
+    "id": "efg123",
+    "name": "Электросамокат Ninebot Max",
+    "category": "Транспорт",
+    "description": "Дальность 65км, скорость до 25км/ч",
+    "price": 59990,
+    "stock": 5,
+    "rating": 4.9
+  },
+  {
+    "id": "NQSAyR",
+    "name": "qwe",
+    "category": "qweqwe",
+    "description": "qweqweqwe",
+    "price": 99999999,
+    "stock": 100000000000,
+    "rating": 1
+  }
+]

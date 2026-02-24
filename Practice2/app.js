@@ -56,7 +56,7 @@ app.delete('/products/:id', (req, res) => {
   res.send('Ok');
 });
 
-// Запуск сервера
+// Запуск серверcd
 app.listen(port, () => {
   console.log(`Сервер запущен на http://localhost:${port}`);
 });
