@@ -44,8 +44,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// ==================== SWAGGER КОНФИГУРАЦИЯ ====================
-
 /**
  * @swagger
  * components:
@@ -110,10 +108,7 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-// ==================== ВАЖНО: Swagger UI должен быть ПЕРЕД обработчиком 404 ====================
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// ==================== МАРШРУТЫ API ====================
 
 // Функция-помощник для поиска товара
 function findProductOr404(id, res) {
@@ -345,8 +340,6 @@ app.delete("/api/products/:id", (req, res) => {
     
     res.status(204).send();
 });
-
-// ==================== ЭТО ДОЛЖНО БЫТЬ В САМОМ КОНЦЕ ====================
 
 // 404 для всех остальных маршрутов (включая те, что не подошли выше)
 app.use((req, res) => {
