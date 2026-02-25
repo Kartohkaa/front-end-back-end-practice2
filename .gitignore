@@ -1,0 +1,33 @@
+# Зависимости - игнорируем node_modules везде
+**/node_modules/
+**/node_modules/**/*
+*/**/node_modules/
+Practice*/**/node_modules/
+
+# Файлы блокировки версий
+**/package-lock.json
+**/yarn.lock
+
+# Логи и кеш
+**/__pycache__/
+**/*.pyc
+**/.cache/
+
+# Файлы окружения
+**/.env
+**/.env.local
+
+# Сборки и временные файлы
+**/dist/
+**/build/
+**/.next/
+
+# IDE
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+
+# Системные файлы
+**/.DS_Store
+**/Thumbs.db
