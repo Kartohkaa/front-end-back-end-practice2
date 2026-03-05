@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./ShopPage.scss";
-import ProductList from "../../components/ProductList";     
-import ProductModal from "../../components/ProductModal";   
-import { api } from "../../api";                            
+import ProductList from "../../components/ProductList";
+import ProductModal from "../../components/ProductModal";
+import AuthModal from "../../components/AuthModal";
+import { api } from "../../api";
+import { isAuthenticated, logout, getCurrentUser } from "../../api/auth";
 
 export default function ShopPage() {
     const [products, setProducts] = useState([]);
@@ -10,6 +12,8 @@ export default function ShopPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState("create");
     const [editingProduct, setEditingProduct] = useState(null);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(getCurrentUser());
 
     useEffect(() => {
         loadProducts();
@@ -22,40 +26,46 @@ export default function ShopPage() {
             setProducts(data);
         } catch (err) {
             console.error("Ошибка загрузки:", err);
-            alert("Ошибка загрузки товаров. Проверьте, запущен ли сервер (backend)");
         } finally {
             setLoading(false);
         }
     };
 
+    const checkAuth = (action) => {
+        if (!isAuthenticated()) {
+            setAuthModalOpen(true);
+            return false;
+        }
+        action();
+        return true;
+    };
+
     const openCreate = () => {
-        setModalMode("create");
-        setEditingProduct(null);
-        setModalOpen(true);
+        checkAuth(() => {
+            setModalMode("create");
+            setEditingProduct(null);
+            setModalOpen(true);
+        });
     };
 
     const openEdit = (product) => {
-        setModalMode("edit");
-        setEditingProduct(product);
-        setModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setModalOpen(false);
-        setEditingProduct(null);
+        checkAuth(() => {
+            setModalMode("edit");
+            setEditingProduct(product);
+            setModalOpen(true);
+        });
     };
 
     const handleDelete = async (id) => {
-        const ok = window.confirm("Вы уверены, что хотите удалить этот товар?");
-        if (!ok) return;
+        if (!checkAuth(() => {})) return;
+
+        if (!window.confirm("Вы уверены?")) return;
 
         try {
             await api.deleteProduct(id);
             setProducts((prev) => prev.filter((p) => p.id !== id));
-            alert("Товар успешно удален!");
         } catch (err) {
             console.error("Ошибка удаления:", err);
-            alert("Ошибка при удалении товара");
         }
     };
 
@@ -64,25 +74,36 @@ export default function ShopPage() {
             if (modalMode === "create") {
                 const newProduct = await api.createProduct(productData);
                 setProducts((prev) => [...prev, newProduct]);
-                alert("Товар успешно создан!");
             } else {
                 const updatedProduct = await api.updateProduct(productData.id, productData);
                 setProducts((prev) =>
                     prev.map((p) => (p.id === productData.id ? updatedProduct : p))
                 );
-                alert("Товар успешно обновлен!");
             }
             closeModal();
         } catch (err) {
             console.error("Ошибка сохранения:", err);
-            alert("Ошибка при сохранении товара");
         }
+    };
+
+    const handleLogout = () => {
+        logout();
+        setCurrentUser(null);
+    };
+
+    const handleAuthSuccess = () => {
+        setCurrentUser(getCurrentUser());
+    };
+
+    const closeModal = () => {
+        setModalOpen(false);
+        setEditingProduct(null);
     };
 
     const totalProducts = products.length;
     const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-    const avgPrice = products.length 
-        ? Math.round(products.reduce((sum, p) => sum + p.price, 0) / products.length) 
+    const avgPrice = products.length
+        ? Math.round(products.reduce((sum, p) => sum + p.price, 0) / products.length)
         : 0;
 
     return (
@@ -91,10 +112,21 @@ export default function ShopPage() {
                 <div className="header__inner">
                     <div className="brand">
                         MIREA Shop
-                        <span>Интернет-магазин</span>
+                        <span>JWT Авторизация</span>
                     </div>
                     <div className="header__right">
-                        React + Express
+                        {currentUser ? (
+                            <>
+                                <span>{currentUser.firstName || currentUser.email}</span>
+                                <button className="btn btn-small" onClick={handleLogout}>
+                                    Выйти
+                                </button>
+                            </>
+                        ) : (
+                            <button className="btn btn-primary" onClick={() => setAuthModalOpen(true)}>
+                                Войти
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>
@@ -103,12 +135,12 @@ export default function ShopPage() {
                 <div className="container">
                     <div className="toolbar">
                         <h1 className="title">Каталог товаров</h1>
-                        <div className="stats">
-                            Всего товаров: {totalProducts}
-                        </div>
-                        <button className="btn btn--primary" onClick={openCreate}>
-                            ➕ Добавить товар
-                        </button>
+                        <div className="stats">Всего товаров: {totalProducts}</div>
+                        {currentUser && (
+                            <button className="btn btn--primary" onClick={openCreate}>
+                                Добавить товар
+                            </button>
+                        )}
                     </div>
 
                     {products.length > 0 && (
@@ -129,12 +161,12 @@ export default function ShopPage() {
                     )}
 
                     {loading ? (
-                        <div className="loading">Загрузка товаров...</div>
+                        <div className="loading">Загрузка...</div>
                     ) : (
-                        <ProductList 
-                            products={products} 
-                            onEdit={openEdit} 
-                            onDelete={handleDelete} 
+                        <ProductList
+                            products={products}
+                            onEdit={openEdit}
+                            onDelete={handleDelete}
                         />
                     )}
                 </div>
@@ -142,8 +174,8 @@ export default function ShopPage() {
 
             <footer className="footer">
                 <div className="footer__inner">
-                    <span>© {new Date().getFullYear()} MIRÉA Shop</span>
-                    <span>Практическое занятие 4: API + React</span>
+                    <span>© {new Date().getFullYear()} MIREA Shop</span>
+                    <span>Практика 8: JWT Авторизация</span>
                 </div>
             </footer>
 
@@ -153,6 +185,12 @@ export default function ShopPage() {
                 initialProduct={editingProduct}
                 onClose={closeModal}
                 onSubmit={handleSubmitModal}
+            />
+
+            <AuthModal
+                isOpen={authModalOpen}
+                onClose={() => setAuthModalOpen(false)}
+                onAuthSuccess={handleAuthSuccess}
             />
         </div>
     );

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ER70fa",
+    "email": "user@example.com",
+    "firstName": "Иван",
+    "lastName": "Петров",
+    "passwordHash": "$2b$10$nCbI8qj3DQcSgQqWOZivXO/tkVZmpdTTeTp5xHn9iBboHYZNiADBu"
+  },
+  {
+    "id": "oE8WLx",
+    "email": "mshulga07@gmail.com",
+    "firstName": "Ну",
+    "lastName": "Рис",
+    "passwordHash": "$2b$10$Gc1zvBkmeQ.IyKSmU7tCqupP6hBzqX9oWdLcg9Imiq0GzsnEBefYa"
+  }
+]
