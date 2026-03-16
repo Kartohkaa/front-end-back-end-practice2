@@ -43,13 +43,13 @@ export default function ProductCard({ product, onEdit, onDelete }) {
                     className="btn btn--small" 
                     onClick={() => onEdit(product)}
                 >
-                    ✏️ Редактировать
+                    Редактировать
                 </button>
                 <button 
                     className="btn btn--small btn--danger" 
                     onClick={() => onDelete(product.id)}
                 >
-                    🗑️ Удалить
+                    Удалить
                 </button>
             </div>
         </div>

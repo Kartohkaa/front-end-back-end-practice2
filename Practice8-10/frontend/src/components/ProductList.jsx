@@ -5,7 +5,7 @@ export default function ProductList({ products, onEdit, onDelete }) {
     if (!products.length) {
         return (
             <div className="empty">
-                🛒 Товаров пока нет. Создайте первый товар!
+                Товаров пока нет. Создайте первый товар!
             </div>
         );
     }
