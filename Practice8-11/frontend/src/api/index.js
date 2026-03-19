@@ -52,6 +52,7 @@ apiClient.interceptors.response.use(
 );
 
 export const api = {
+    // Товары
     getProducts: async () => {
         const response = await apiClient.get("/products");
         return response.data;
@@ -74,6 +75,32 @@ export const api = {
     
     deleteProduct: async (id) => {
         const response = await apiClient.delete(`/products/${id}`);
+        return response.data;
+    },
+    
+    // ========== НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ ==========
+    getUsers: async () => {
+        const response = await apiClient.get("/users");
+        return response.data;
+    },
+    
+    getUserById: async (id) => {
+        const response = await apiClient.get(`/users/${id}`);
+        return response.data;
+    },
+    
+    updateUser: async (id, userData) => {
+        const response = await apiClient.put(`/users/${id}`, userData);
+        return response.data;
+    },
+    
+    deleteUser: async (id) => {
+        const response = await apiClient.delete(`/users/${id}`);
+        return response.data;
+    },
+    
+    blockUser: async (id) => {
+        const response = await apiClient.patch(`/users/${id}/block`);
         return response.data;
     }
 };

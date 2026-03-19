@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dFgVaG",
+    "email": "admin@shop.ru",
+    "firstName": "Admin",
+    "lastName": "Adminov",
+    "role": "admin",
+    "isBlocked": false,
+    "passwordHash": "$2b$10$RJz/3Xt0AVwgaFOE8LEYnuizGuXd7kQnMmKdU3.oe.28taq4g46CS"
+  },
+  {
+    "id": "mWosii",
+    "email": "seller@shop.ru",
+    "firstName": "Seller",
+    "lastName": "Sellersky",
+    "role": "seller",
+    "isBlocked": false,
+    "passwordHash": "$2b$10$3VoTGF9cZtYLPbC3sSDkrOtTxBDhn2AYuXf5/qVNyvmJpvtCAfyK6"
+  },
+  {
+    "id": "9NtrLy",
+    "email": "user@shop.ru",
+    "firstName": "User",
+    "lastName": "Userov",
+    "role": "user",
+    "isBlocked": false,
+    "passwordHash": "$2b$10$TSXiIyQTGLhlqmSwzQEMIed05NqinebKW5FikwBMNCigCPGVbSpJe"
+  },
+  {
+    "id": "35O3lZ",
+    "email": "mshulga07@gmail.com",
+    "firstName": "1",
+    "lastName": "1",
+    "role": "user",
+    "isBlocked": false,
+    "passwordHash": "$2b$10$hZN7J12Agz3L2.Igl2LIQuk8tPizNo5D5/hFaumJxiqz.R.uQZFHy"
+  }
+]

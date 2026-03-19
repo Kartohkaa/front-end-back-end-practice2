@@ -64,8 +64,10 @@ export default function ShopPage() {
         try {
             await api.deleteProduct(id);
             setProducts((prev) => prev.filter((p) => p.id !== id));
+            alert("Товар удален");
         } catch (err) {
             console.error("Ошибка удаления:", err);
+            alert("Ошибка при удалении товара");
         }
     };
 
@@ -74,15 +76,18 @@ export default function ShopPage() {
             if (modalMode === "create") {
                 const newProduct = await api.createProduct(productData);
                 setProducts((prev) => [...prev, newProduct]);
+                alert("Товар создан!");
             } else {
                 const updatedProduct = await api.updateProduct(productData.id, productData);
                 setProducts((prev) =>
                     prev.map((p) => (p.id === productData.id ? updatedProduct : p))
                 );
+                alert("Товар обновлен!");
             }
             closeModal();
         } catch (err) {
             console.error("Ошибка сохранения:", err);
+            alert("Ошибка при сохранении товара");
         }
     };
 
@@ -106,6 +111,9 @@ export default function ShopPage() {
         ? Math.round(products.reduce((sum, p) => sum + p.price, 0) / products.length)
         : 0;
 
+    const canCreateProduct = currentUser && (currentUser.role === 'seller' || currentUser.role === 'admin');
+    const isAdmin = currentUser && currentUser.role === 'admin';
+
     return (
         <div className="page">
             <header className="header">
@@ -116,12 +124,23 @@ export default function ShopPage() {
                     </div>
                     <div className="header__right">
                         {currentUser ? (
-                            <>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <span>{currentUser.firstName || currentUser.email}</span>
+                                <span style={{ fontSize: '12px', opacity: 0.7 }}>({currentUser.role})</span>
+                                
+                                {isAdmin && (
+                                    <button 
+                                        className="btn btn-small btn-primary"
+                                        onClick={() => window.location.href = '/admin'}
+                                    >
+                                        Админка
+                                    </button>
+                                )}
+                                
                                 <button className="btn btn-small" onClick={handleLogout}>
                                     Выйти
                                 </button>
-                            </>
+                            </div>
                         ) : (
                             <button className="btn btn-primary" onClick={() => setAuthModalOpen(true)}>
                                 Войти
@@ -136,7 +155,8 @@ export default function ShopPage() {
                     <div className="toolbar">
                         <h1 className="title">Каталог товаров</h1>
                         <div className="stats">Всего товаров: {totalProducts}</div>
-                        {currentUser && (
+                        
+                        {canCreateProduct && (
                             <button className="btn btn--primary" onClick={openCreate}>
                                 Добавить товар
                             </button>
@@ -167,6 +187,7 @@ export default function ShopPage() {
                             products={products}
                             onEdit={openEdit}
                             onDelete={handleDelete}
+                            currentUser={currentUser} // ЭТО ВАЖНО!
                         />
                     )}
                 </div>
@@ -175,7 +196,7 @@ export default function ShopPage() {
             <footer className="footer">
                 <div className="footer__inner">
                     <span>© {new Date().getFullYear()} MIREA Shop</span>
-                    <span>Практика 8: JWT Авторизация</span>
+                    <span>Практика 11: RBAC</span>
                 </div>
             </footer>
 

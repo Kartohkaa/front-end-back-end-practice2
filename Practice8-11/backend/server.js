@@ -38,7 +38,37 @@ function writeProducts(products) {
 
 function readUsers() {
     if (!fs.existsSync(usersFile)) {
-        fs.writeFileSync(usersFile, JSON.stringify([]));
+        // Добавляем тестовых пользователей с ролями
+        const defaultUsers = [
+            {
+                id: nanoid(6),
+                email: 'admin@shop.ru',
+                firstName: 'Admin',
+                lastName: 'Adminov',
+                role: 'admin',
+                isBlocked: false,
+                passwordHash: bcrypt.hashSync('admin123', 10)
+            },
+            {
+                id: nanoid(6),
+                email: 'seller@shop.ru',
+                firstName: 'Seller',
+                lastName: 'Sellersky',
+                role: 'seller',
+                isBlocked: false,
+                passwordHash: bcrypt.hashSync('seller123', 10)
+            },
+            {
+                id: nanoid(6),
+                email: 'user@shop.ru',
+                firstName: 'User',
+                lastName: 'Userov',
+                role: 'user',
+                isBlocked: false,
+                passwordHash: bcrypt.hashSync('user123', 10)
+            }
+        ];
+        fs.writeFileSync(usersFile, JSON.stringify(defaultUsers, null, 2));
     }
     const data = fs.readFileSync(usersFile);
     return JSON.parse(data);
@@ -54,7 +84,8 @@ function generateAccessToken(user) {
             userId: user.id, 
             email: user.email,
             firstName: user.firstName,
-            lastName: user.lastName
+            lastName: user.lastName,
+            role: user.role || 'user' // ДОБАВЛЕНО поле role
         },
         ACCESS_SECRET,
         { expiresIn: ACCESS_EXPIRES_IN }
@@ -86,6 +117,18 @@ function authenticateToken(req, res, next) {
     });
 }
 
+function roleMiddleware(allowedRoles) {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Требуется авторизация' });
+        }
+        if (!allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({ error: 'Доступ запрещен. Требуется роль: ' + allowedRoles.join(', ') });
+        }
+        next();
+    };
+}
+
 /**
  * @swagger
  * components:
@@ -105,6 +148,12 @@ function authenticateToken(req, res, next) {
  *         lastName:
  *           type: string
  *           example: "Петров"
+ *         role:
+ *           type: string
+ *           example: "user"
+ *         isBlocked:
+ *           type: boolean
+ *           example: false
  *     Product:
  *       type: object
  *       required:
@@ -230,6 +279,8 @@ app.post("/api/auth/register", async (req, res) => {
         email,
         firstName: firstName || '',
         lastName: lastName || '',
+        role: 'user', // ДОБАВЛЕНО: роль по умолчанию
+        isBlocked: false, // ДОБАВЛЕНО: поле блокировки
         passwordHash: hashedPassword
     };
 
@@ -284,6 +335,10 @@ app.post("/api/auth/login", async (req, res) => {
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
         return res.status(401).json({ error: "Неверный email или пароль" });
+    }
+
+    if (user.isBlocked) {
+        return res.status(403).json({ error: "Пользователь заблокирован" });
     }
 
     const accessToken = generateAccessToken(user);
@@ -349,6 +404,10 @@ app.post("/api/auth/refresh", (req, res) => {
 
         if (!user) {
             return res.status(401).json({ error: "Пользователь не найден" });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ error: "Пользователь заблокирован" });
         }
 
         refreshTokens.delete(refreshToken);
@@ -425,9 +484,224 @@ app.get("/api/auth/me", authenticateToken, (req, res) => {
 
 /**
  * @swagger
+ * /users:
+ *   get:
+ *     summary: Получить список всех пользователей (только admin)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список пользователей
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       403:
+ *         description: Доступ запрещен
+ */
+app.get("/api/users", authenticateToken, roleMiddleware(['admin']), (req, res) => {
+    const users = readUsers();
+    const usersWithoutPasswords = users.map(({ passwordHash, ...user }) => user);
+    res.json(usersWithoutPasswords);
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Получить пользователя по ID (только admin)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Данные пользователя
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Пользователь не найден
+ */
+app.get("/api/users/:id", authenticateToken, roleMiddleware(['admin']), (req, res) => {
+    const users = readUsers();
+    const user = users.find(u => u.id === req.params.id);
+    if (!user) {
+        return res.status(404).json({ error: "Пользователь не найден" });
+    }
+    const { passwordHash, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   put:
+ *     summary: Обновить информацию пользователя (только admin)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [user, seller, admin]
+ *     responses:
+ *       200:
+ *         description: Пользователь обновлен
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Недопустимая роль
+ *       404:
+ *         description: Пользователь не найден
+ */
+app.put("/api/users/:id", authenticateToken, roleMiddleware(['admin']), (req, res) => {
+    const users = readUsers();
+    const index = users.findIndex(u => u.id === req.params.id);
+    if (index === -1) {
+        return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    const { firstName, lastName, email, role } = req.body;
+    
+    if (role && !['user', 'seller', 'admin'].includes(role)) {
+        return res.status(400).json({ error: "Недопустимая роль" });
+    }
+
+    users[index] = {
+        ...users[index],
+        firstName: firstName || users[index].firstName,
+        lastName: lastName || users[index].lastName,
+        email: email || users[index].email,
+        role: role || users[index].role
+    };
+
+    writeUsers(users);
+    
+    const { passwordHash, ...userWithoutPassword } = users[index];
+    res.json(userWithoutPassword);
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Удалить пользователя (только admin)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Пользователь удален
+ *       400:
+ *         description: Нельзя удалить самого себя
+ *       404:
+ *         description: Пользователь не найден
+ */
+app.delete("/api/users/:id", authenticateToken, roleMiddleware(['admin']), (req, res) => {
+    const users = readUsers();
+    
+    if (req.params.id === req.user.userId) {
+        return res.status(400).json({ error: "Нельзя удалить самого себя" });
+    }
+
+    const filtered = users.filter(u => u.id !== req.params.id);
+    
+    if (filtered.length === users.length) {
+        return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    writeUsers(filtered);
+    res.status(204).send();
+});
+
+/**
+ * @swagger
+ * /users/{id}/block:
+ *   patch:
+ *     summary: Заблокировать/разблокировать пользователя (только admin)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Статус пользователя изменен
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Нельзя заблокировать самого себя
+ *       404:
+ *         description: Пользователь не найден
+ */
+app.patch("/api/users/:id/block", authenticateToken, roleMiddleware(['admin']), (req, res) => {
+    const users = readUsers();
+    const user = users.find(u => u.id === req.params.id);
+    
+    if (!user) {
+        return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    if (req.params.id === req.user.userId) {
+        return res.status(400).json({ error: "Нельзя заблокировать самого себя" });
+    }
+
+    user.isBlocked = !user.isBlocked;
+    writeUsers(users);
+    
+    res.json({ message: `Пользователь ${user.isBlocked ? 'заблокирован' : 'разблокирован'}` });
+});
+
+/**
+ * @swagger
  * /products:
  *   get:
- *     summary: Список всех товаров
+ *     summary: Список всех товаров (доступно всем)
  *     tags: [Products]
  *     responses:
  *       200:
@@ -447,7 +721,7 @@ app.get("/api/products", (req, res) => {
  * @swagger
  * /products/{id}:
  *   get:
- *     summary: Получить товар по ID
+ *     summary: Получить товар по ID (доступно авторизованным пользователям)
  *     tags: [Products]
  *     security:
  *       - bearerAuth: []
@@ -480,7 +754,7 @@ app.get("/api/products/:id", authenticateToken, (req, res) => {
  * @swagger
  * /products:
  *   post:
- *     summary: Создать новый товар
+ *     summary: Создать новый товар (только seller и admin)
  *     tags: [Products]
  *     security:
  *       - bearerAuth: []
@@ -516,8 +790,10 @@ app.get("/api/products/:id", authenticateToken, (req, res) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Product'
+ *       403:
+ *         description: Доступ запрещен
  */
-app.post("/api/products", authenticateToken, (req, res) => {
+app.post("/api/products", authenticateToken, roleMiddleware(['seller', 'admin']), (req, res) => {
     const { name, category, description, price, stock, rating } = req.body;
 
     if (!name || !category || !description || !price || stock === undefined) {
@@ -544,7 +820,7 @@ app.post("/api/products", authenticateToken, (req, res) => {
  * @swagger
  * /products/{id}:
  *   patch:
- *     summary: Обновить товар
+ *     summary: Обновить товар (только seller и admin)
  *     tags: [Products]
  *     security:
  *       - bearerAuth: []
@@ -582,7 +858,7 @@ app.post("/api/products", authenticateToken, (req, res) => {
  *       404:
  *         description: Товар не найден
  */
-app.patch("/api/products/:id", authenticateToken, (req, res) => {
+app.patch("/api/products/:id", authenticateToken, roleMiddleware(['seller', 'admin']), (req, res) => {
     const products = readProducts();
     const index = products.findIndex(p => p.id === req.params.id);
     if (index === -1) {
@@ -608,7 +884,7 @@ app.patch("/api/products/:id", authenticateToken, (req, res) => {
  * @swagger
  * /products/{id}:
  *   delete:
- *     summary: Удалить товар
+ *     summary: Удалить товар (только admin)
  *     tags: [Products]
  *     security:
  *       - bearerAuth: []
@@ -624,7 +900,7 @@ app.patch("/api/products/:id", authenticateToken, (req, res) => {
  *       404:
  *         description: Товар не найден
  */
-app.delete("/api/products/:id", authenticateToken, (req, res) => {
+app.delete("/api/products/:id", authenticateToken, roleMiddleware(['admin']), (req, res) => {
     const products = readProducts();
     const filtered = products.filter(p => p.id !== req.params.id);
 
@@ -643,4 +919,8 @@ app.use((req, res) => {
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
     console.log(`Swagger UI available at http://localhost:${port}/api-docs`);
+    console.log('Test accounts:');
+    console.log('admin@shop.ru / admin123');
+    console.log('seller@shop.ru / seller123');
+    console.log('user@shop.ru / user123');
 });
