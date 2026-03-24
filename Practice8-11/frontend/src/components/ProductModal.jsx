@@ -7,6 +7,7 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
     const [price, setPrice] = useState('');
     const [stock, setStock] = useState('');
     const [rating, setRating] = useState('');
+    const [image, setImage] = useState('');
 
     useEffect(() => {
         if (!open) return;
@@ -18,6 +19,7 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
             setPrice(initialProduct.price?.toString() || '');
             setStock(initialProduct.stock?.toString() || '');
             setRating(initialProduct.rating?.toString() || '');
+            setImage(initialProduct.image || '');
         } else {
             setName('');
             setCategory('');
@@ -25,6 +27,7 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
             setPrice('');
             setStock('');
             setRating('');
+            setImage('');
         }
     }, [open, initialProduct]);
 
@@ -41,6 +44,7 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
         const parsedPrice = Number(price);
         const parsedStock = Number(stock);
         const parsedRating = rating ? Number(rating) : 0;
+        const trimmedImage = image.trim();
 
         if (!trimmedName) {
             alert('Введите название товара');
@@ -79,7 +83,8 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
             description: trimmedDescription,
             price: parsedPrice,
             stock: parsedStock,
-            rating: parsedRating || 0
+            rating: parsedRating || 0,
+            image: trimmedImage || "https://picsum.photos/id/20/300/200"
         });
     };
 
@@ -166,6 +171,16 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
                             />
                         </label>
                     </div>
+
+                    <label className="label">
+                        Ссылка на картинку
+                        <input
+                            className="input"
+                            value={image}
+                            onChange={(e) => setImage(e.target.value)}
+                            placeholder="https://example.com/image.jpg"
+                        />
+                    </label>
 
                     <div className="modal__footer">
                         <button type="button" className="btn" onClick={onClose}>

@@ -38,7 +38,6 @@ function writeProducts(products) {
 
 function readUsers() {
     if (!fs.existsSync(usersFile)) {
-        // Добавляем тестовых пользователей с ролями
         const defaultUsers = [
             {
                 id: nanoid(6),
@@ -85,7 +84,7 @@ function generateAccessToken(user) {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            role: user.role || 'user' // ДОБАВЛЕНО поле role
+            role: user.role || 'user'
         },
         ACCESS_SECRET,
         { expiresIn: ACCESS_EXPIRES_IN }
@@ -184,6 +183,9 @@ function roleMiddleware(allowedRoles) {
  *         rating:
  *           type: number
  *           example: 4.8
+ *         image:
+ *           type: string
+ *           example: "https://picsum.photos/id/0/300/200"
  *     LoginResponse:
  *       type: object
  *       properties:
@@ -279,8 +281,8 @@ app.post("/api/auth/register", async (req, res) => {
         email,
         firstName: firstName || '',
         lastName: lastName || '',
-        role: 'user', // ДОБАВЛЕНО: роль по умолчанию
-        isBlocked: false, // ДОБАВЛЕНО: поле блокировки
+        role: 'user',
+        isBlocked: false,
         passwordHash: hashedPassword
     };
 
@@ -783,6 +785,8 @@ app.get("/api/products/:id", authenticateToken, (req, res) => {
  *                 type: integer
  *               rating:
  *                 type: number
+ *               image:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Товар создан
@@ -794,7 +798,7 @@ app.get("/api/products/:id", authenticateToken, (req, res) => {
  *         description: Доступ запрещен
  */
 app.post("/api/products", authenticateToken, roleMiddleware(['seller', 'admin']), (req, res) => {
-    const { name, category, description, price, stock, rating } = req.body;
+    const { name, category, description, price, stock, rating, image } = req.body;
 
     if (!name || !category || !description || !price || stock === undefined) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -808,7 +812,8 @@ app.post("/api/products", authenticateToken, roleMiddleware(['seller', 'admin'])
         description: description.trim(),
         price: Number(price),
         stock: Number(stock),
-        rating: rating ? Number(rating) : 0
+        rating: rating ? Number(rating) : 0,
+        image: image || "https://picsum.photos/id/20/300/200"
     };
 
     products.push(newProduct);
@@ -848,6 +853,8 @@ app.post("/api/products", authenticateToken, roleMiddleware(['seller', 'admin'])
  *                 type: integer
  *               rating:
  *                 type: number
+ *               image:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Товар обновлен
@@ -865,7 +872,7 @@ app.patch("/api/products/:id", authenticateToken, roleMiddleware(['seller', 'adm
         return res.status(404).json({ error: "Product not found" });
     }
 
-    const { name, category, description, price, stock, rating } = req.body;
+    const { name, category, description, price, stock, rating, image } = req.body;
     const updatedProduct = { ...products[index] };
 
     if (name) updatedProduct.name = name.trim();
@@ -874,6 +881,7 @@ app.patch("/api/products/:id", authenticateToken, roleMiddleware(['seller', 'adm
     if (price) updatedProduct.price = Number(price);
     if (stock !== undefined) updatedProduct.stock = Number(stock);
     if (rating) updatedProduct.rating = Number(rating);
+    if (image) updatedProduct.image = image;
 
     products[index] = updatedProduct;
     writeProducts(products);

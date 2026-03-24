@@ -178,6 +178,26 @@ $successBg: rgba(34, 197, 94, 0.12);
     border-color: rgba(255, 255, 255, 0.2);
   }
   
+  &__image {
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.2s;
+    }
+    
+    &:hover img {
+      transform: scale(1.05);
+    }
+  }
+  
   &__header {
     display: flex;
     justify-content: space-between;

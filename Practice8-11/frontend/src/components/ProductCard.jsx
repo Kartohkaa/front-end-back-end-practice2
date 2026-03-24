@@ -11,13 +11,21 @@ export default function ProductCard({ product, onEdit, onDelete, currentUser }) 
         return new Intl.NumberFormat('ru-RU').format(price) + ' ₽';
     };
 
-    // Проверка прав
     const canEdit = currentUser && (currentUser.role === 'seller' || currentUser.role === 'admin');
     const canDelete = currentUser && currentUser.role === 'admin';
-    const canView = currentUser; // Любой авторизованный может просматривать детали
+    const canView = currentUser;
+
+    const defaultImage = "https://picsum.photos/id/20/300/200";
 
     return (
         <div className="productCard">
+            <div className="productCard__image">
+                <img 
+                    src={product.image || defaultImage} 
+                    alt={product.name}
+                    onError={(e) => { e.target.src = defaultImage; }}
+                />
+            </div>
             <div className="productCard__header">
                 <h3 className="productCard__name">{product.name}</h3>
                 <span className="productCard__category">{product.category}</span>
@@ -43,7 +51,6 @@ export default function ProductCard({ product, onEdit, onDelete, currentUser }) 
             )}
             
             <div className="productCard__actions">
-                {/* Кнопка просмотра доступна всем авторизованным */}
                 {canView && (
                     <button 
                         className="btn btn--small" 
@@ -52,8 +59,6 @@ export default function ProductCard({ product, onEdit, onDelete, currentUser }) 
                         Просмотр
                     </button>
                 )}
-                
-                {/* Кнопка редактирования доступна seller и admin */}
                 {canEdit && (
                     <button 
                         className="btn btn--small" 
@@ -62,8 +67,6 @@ export default function ProductCard({ product, onEdit, onDelete, currentUser }) 
                         Редактировать
                     </button>
                 )}
-                
-                {/* Кнопка удаления ТОЛЬКО для admin */}
                 {canDelete && (
                     <button 
                         className="btn btn--small btn--danger" 
