@@ -103,6 +103,8 @@
             opacity: 0.6;
             display: flex;
             justify-content: center;
+            gap: 20px;
+            align-items: center;
         }
         .note-item {
             background: rgba(255, 255, 255, 0.03);
@@ -155,6 +157,10 @@
             background: rgba(239, 68, 68, 0.12);
             border: 1px solid rgba(239, 68, 68, 0.45);
         }
+        .btn-success {
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(34, 197, 94, 0.55);
+        }
         .form-row {
             display: flex;
             gap: 12px;
@@ -199,6 +205,28 @@
             margin: 20px 0;
             opacity: 0.8;
         }
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #646cff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -207,7 +235,7 @@
             <div class="header__inner">
                 <div class="brand">
                     Заметки Мирэа
-                    <span>App Shell</span>
+                    <span>работаем!</span>
                 </div>
             </div>
         </header>
@@ -215,6 +243,7 @@
         <div class="nav">
             <button id="home-btn" class="nav-btn active">Главная</button>
             <button id="about-btn" class="nav-btn">О приложении</button>
+            <button id="student-btn" class="nav-btn">О студенте</button>
         </div>
 
         <main class="main" id="app-content">
@@ -223,11 +252,14 @@
 
         <footer class="footer">
             <div class="footer__inner">
-                <span>Practice 15: HTTPS + App Shell</span>
+                <button id="enable-push" class="btn btn-success">Включить уведомления</button>
+                <button id="disable-push" class="btn btn-danger" style="display:none;">Отключить уведомления</button>
+                <span>Practice 15-16: HTTPS + App Shell + WebSocket + Push</span>
             </div>
         </footer>
     </div>
 
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

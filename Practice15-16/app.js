@@ -1,10 +1,66 @@
 const contentDiv = document.getElementById('app-content');
 const homeBtn = document.getElementById('home-btn');
 const aboutBtn = document.getElementById('about-btn');
+const studentBtn = document.getElementById('student-btn');
+const enablePushBtn = document.getElementById('enable-push');
+const disablePushBtn = document.getElementById('disable-push');
+
+const socket = io('https://localhost:3443');
+
+const VAPID_PUBLIC_KEY = 'BBbUusq5VzDL-0Ny47Qm6OCaMweRpyQMJIzHpoFyRvv9r2cq8Yrx7ntu2OZglr-KHmzmgHrJTKb9v0hYif53SJw';
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function subscribeToPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.log('Push не поддерживается');
+        return;
+    }
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        await fetch('https://localhost:3443/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(subscription)
+        });
+        console.log('Подписка на push отправлена');
+    } catch (err) {
+        console.error('Ошибка подписки на push:', err);
+    }
+}
+
+async function unsubscribeFromPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+        await fetch('https://localhost:3443/unsubscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: subscription.endpoint })
+        });
+        await subscription.unsubscribe();
+        console.log('Отписка выполнена');
+    }
+}
 
 function setActiveButton(activeId) {
     homeBtn.classList.remove('active');
     aboutBtn.classList.remove('active');
+    studentBtn.classList.remove('active');
     document.getElementById(activeId).classList.add('active');
 }
 
@@ -33,7 +89,21 @@ aboutBtn.addEventListener('click', () => {
     loadContent('about');
 });
 
+studentBtn.addEventListener('click', () => {
+    setActiveButton('student-btn');
+    loadContent('student');
+});
+
 loadContent('home');
+
+socket.on('taskAdded', (task) => {
+    console.log('Задача от другого клиента:', task);
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.textContent = `Новая задача: ${task.text}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+});
 
 function initNotes() {
     const noteInput = document.getElementById('note-input');
@@ -110,6 +180,8 @@ function initNotes() {
         });
         localStorage.setItem('notes', JSON.stringify(notes));
         loadNotes();
+        
+        socket.emit('newTask', { text: text.trim(), timestamp: Date.now() });
     }
 
     function deleteNote(index) {
@@ -147,18 +219,51 @@ function initNotes() {
 
     const testNotes = JSON.parse(localStorage.getItem('notes') || '[]');
     if (testNotes.length === 0) {
-        addNote('Добро пожаловать в офлайн заметки');
-        addNote('App Shell архитектура - мгновенная загрузка');
-        addNote('Приложение работает по HTTPS');
+        addNote('Йооооу! ЗАметки!');
+        addNote('Тестим Push уведомления');
+        addNote('Добавляем заметку - приходит уведомление');
     }
     
     loadNotes();
 }
 
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('ServiceWorker registered:', reg.scope))
-            .catch(err => console.log('ServiceWorker registration failed:', err));
+    window.addEventListener('load', async () => {
+        try {
+            const reg = await navigator.serviceWorker.register('/sw.js');
+            console.log('SW registered:', reg.scope);
+            
+            const subscription = await reg.pushManager.getSubscription();
+            if (subscription) {
+                enablePushBtn.style.display = 'none';
+                disablePushBtn.style.display = 'inline-block';
+            }
+            
+            enablePushBtn.addEventListener('click', async () => {
+                if (Notification.permission === 'denied') {
+                    alert('Уведомления запрещены. Разрешите их в настройках браузера.');
+                    return;
+                }
+                if (Notification.permission === 'default') {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        alert('Необходимо разрешить уведомления.');
+                        return;
+                    }
+                }
+                await subscribeToPush();
+                enablePushBtn.style.display = 'none';
+                disablePushBtn.style.display = 'inline-block';
+            });
+            
+            disablePushBtn.addEventListener('click', async () => {
+                await unsubscribeFromPush();
+                disablePushBtn.style.display = 'none';
+                enablePushBtn.style.display = 'inline-block';
+            });
+            
+        } catch (err) {
+            console.log('SW registration failed:', err);
+        }
     });
 }
