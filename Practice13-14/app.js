@@ -3,6 +3,13 @@ const addBtn = document.getElementById('add-btn');
 const notesContainer = document.getElementById('notes-container');
 const statsSpan = document.getElementById('stats');
 
+notesContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        deleteNote(index);
+    }
+});
+
 function formatDate() {
     const now = new Date();
     return now.toLocaleString('ru-RU', {
@@ -38,7 +45,7 @@ function loadNotes() {
     const notes = JSON.parse(localStorage.getItem('notes') || '[]');
     
     if (notes.length === 0) {
-        notesContainer.innerHTML = '<div class="empty">Нет заметок. Зодумойтесь!</div>';
+        notesContainer.innerHTML = '<div class="empty">Нет заметок. Создайте первую!</div>';
         updateStats([]);
         return;
     }
@@ -49,19 +56,11 @@ function loadNotes() {
                 <div class="note-text">${escapeHtml(note.text)}</div>
                 <div class="note-date">${note.date}</div>
             </div>
-            <button class="delete-btn btn btn--danger btn-delete" data-index="${index}">Удалить</button>
+            <button class="delete-btn btn btn--danger" data-index="${index}">Удалить</button>
         </div>
     `).join('');
     
     updateStats(notes);
-    
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const index = parseInt(btn.dataset.index);
-            deleteNote(index);
-        });
-    });
 }
 
 function addNote(text) {
@@ -92,7 +91,7 @@ addBtn.addEventListener('click', () => {
     }
 });
 
-noteInput.addEventListener('keypress', (e) => {
+noteInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         const text = noteInput.value.trim();
         if (text) {
@@ -113,11 +112,15 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-loadNotes();
-
-const testNotes = JSON.parse(localStorage.getItem('notes') || '[]');
-if (testNotes.length === 0) {
-    addNote('Добро пожаловать в офлайн заметки');
-    addNote('Эта заметка доступна даже без интернета');
-    addNote('Добавляйте и удаляйте - всё сохранится в localStorage');
+function init() {
+    loadNotes();
+    
+    const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+    if (notes.length === 0) {
+        addNote('Добро пожаловать в офлайн заметки');
+        addNote('Эта заметка доступна даже без интернета');
+        addNote('Добавляйте и удаляйте - всё сохранится в localStorage');
+    }
 }
+
+init();
