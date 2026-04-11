@@ -1,0 +1,23 @@
+<div>
+    <div class="toolbar">
+        <h1 class="title">Заметки</h1>
+        <div class="stats" id="stats">0 заметок</div>
+    </div>
+
+    <div class="form-row">
+        <input type="text" id="note-input" class="form-input" placeholder="Введите заметку..." autocomplete="off">
+        <button id="add-btn" class="btn btn-primary">Добавить</button>
+    </div>
+
+    <div style="margin: 20px 0; text-align: center; opacity: 0.7;">или</div>
+
+    <div class="form-row">
+        <input type="text" id="reminder-text" class="form-input" placeholder="Текст напоминания..." autocomplete="off">
+        <input type="datetime-local" id="reminder-time" class="form-input" style="width: 200px;">
+        <button id="add-reminder-btn" class="btn btn-success">Напомнить</button>
+    </div>
+
+    <div id="notes-container">
+        <div class="empty">Нет заметок. Создайте первую!</div>
+    </div>
+</div>
